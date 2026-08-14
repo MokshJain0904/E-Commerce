@@ -1,14 +1,175 @@
-
+import React, { useState } from 'react';
 import './App.css';
 import ColorSchemesExample from './components/navbar';
 import IndividualIntervalsExample from './components/slide-show';
+import ElectronicSection from './components/Electronic';
+import FashionSection from './components/Fashion';
+import GrocerySection from './components/grocery';
+import EducationSection from './components/Education';
+import ProductCard from './components/ProductCard';
+import CartModal from './components/CartModal';
+import Footer from './components/Footer';
+import { products } from './data/productData';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Toast from 'react-bootstrap/Toast';
+import ToastContainer from 'react-bootstrap/ToastContainer';
+
 function App() {
+  // State for cart items
+  const [cart, setCart] = useState([]);
+  // State for active category tab ('All', 'Electronics', 'Fashion', 'Grocery', 'Education')
+  const [activeCategory, setActiveCategory] = useState('All');
+  // State for search filter
+  const [searchQuery, setSearchQuery] = useState('');
+  // State for Cart Modal visibility
+  const [showCartModal, setShowCartModal] = useState(false);
+  // State for Toast feedback
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
+
+  // Add product to cart handler
+  const handleAddToCart = (product) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((item) => item.id === product.id);
+      if (existingItem) {
+        return prevCart.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prevCart, { ...product, quantity: 1 }];
+    });
+
+    setToastMessage(`Added "${product.name}" to your cart!`);
+    setShowToast(true);
+  };
+
+  // Update item quantity in cart
+  const handleUpdateQuantity = (id, newQuantity) => {
+    if (newQuantity <= 0) {
+      handleRemoveItem(id);
+      return;
+    }
+    setCart((prevCart) =>
+      prevCart.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item))
+    );
+  };
+
+  // Remove item from cart
+  const handleRemoveItem = (id) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+  };
+
+  // Clear cart after checkout
+  const handleClearCart = () => {
+    setCart([]);
+  };
+
+  // Calculate total items count in cart
+  const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
+
+  // Filter products based on search query and active category
+  const filteredProducts = products.filter((p) => {
+    const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
   return (
-    <>
-    <ColorSchemesExample />
-    <IndividualIntervalsExample />
-    </>
+    <div className="App d-flex flex-column min-vh-100 bg-light">
+      {/* 1. Navigation Bar */}
+      <ColorSchemesExample
+        activeCategory={activeCategory}
+        onSelectCategory={(category) => {
+          setActiveCategory(category);
+          setSearchQuery(''); // clear search on category change
+        }}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        cartCount={cartCount}
+        onOpenCart={() => setShowCartModal(true)}
+      />
+
+      {/* 2. Trending Slideshow (Shown on Home / "All" view when not searching) */}
+      {activeCategory === 'All' && searchQuery === '' && (
+        <IndividualIntervalsExample />
+      )}
+
+      {/* 3. Main Content / Product Sections */}
+      <main className="flex-grow-1">
+        {searchQuery !== '' ? (
+          /* Search Results View */
+          <Container className="my-4">
+            <h3 className="fw-bold mb-3">
+              Search Results for <span className="text-primary">"{searchQuery}"</span>
+            </h3>
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-5 text-muted">
+                <h4>No products found matching your search.</h4>
+                <p>Try searching for headphones, sneakers, coffee, or books.</p>
+              </div>
+            ) : (
+              <Row className="g-4">
+                {filteredProducts.map((product) => (
+                  <Col key={product.id} xs={12} sm={6} md={4} lg={3}>
+                    <ProductCard product={product} onAddToCart={handleAddToCart} />
+                  </Col>
+                ))}
+              </Row>
+            )}
+          </Container>
+        ) : activeCategory === 'All' ? (
+          /* "All" / Home View with Category Blocks */
+          <>
+            <ElectronicSection products={products} onAddToCart={handleAddToCart} />
+            <FashionSection products={products} onAddToCart={handleAddToCart} />
+            <GrocerySection products={products} onAddToCart={handleAddToCart} />
+            <EducationSection products={products} onAddToCart={handleAddToCart} />
+          </>
+        ) : activeCategory === 'Electronics' ? (
+          <ElectronicSection products={products} onAddToCart={handleAddToCart} />
+        ) : activeCategory === 'Fashion' ? (
+          <FashionSection products={products} onAddToCart={handleAddToCart} />
+        ) : activeCategory === 'Grocery' ? (
+          <GrocerySection products={products} onAddToCart={handleAddToCart} />
+        ) : activeCategory === 'Education' ? (
+          <EducationSection products={products} onAddToCart={handleAddToCart} />
+        ) : null}
+      </main>
+
+      {/* 4. Notification Toast when adding items */}
+      <ToastContainer position="bottom-end" className="p-3 style-toast">
+        <Toast
+          onClose={() => setShowToast(false)}
+          show={showToast}
+          delay={2500}
+          autohide
+          bg="success"
+        >
+          <Toast.Header>
+            <strong className="me-auto">🛒 SwiftCart</strong>
+            <small>Just now</small>
+          </Toast.Header>
+          <Toast.Body className="text-white fw-bold">{toastMessage}</Toast.Body>
+        </Toast>
+      </ToastContainer>
+
+      {/* 5. Cart Drawer Modal */}
+      <CartModal
+        show={showCartModal}
+        onHide={() => setShowCartModal(false)}
+        cart={cart}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onClearCart={handleClearCart}
+      />
+
+      {/* 6. Footer */}
+      <Footer />
+    </div>
   );
 }
 
-export default App; 
+export default App;
