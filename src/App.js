@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import ColorSchemesExample from './components/navbar';
 import IndividualIntervalsExample from './components/slide-show';
@@ -8,8 +8,10 @@ import GrocerySection from './components/grocery';
 import EducationSection from './components/Education';
 import ProductCard from './components/ProductCard';
 import CartModal from './components/CartModal';
+import AuthModal from './components/AuthModal';
+import PaymentModal from './components/PaymentModal';
 import Footer from './components/Footer';
-import { products } from './data/productData';
+import { products as initialProducts } from './data/productData';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -17,17 +19,54 @@ import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
 
 function App() {
+  // State for product list (initialized with all 32 products)
+  const [productList, setProductList] = useState(initialProducts);
+
   // State for cart items
   const [cart, setCart] = useState([]);
   // State for active category tab ('All', 'Electronics', 'Fashion', 'Grocery', 'Education')
   const [activeCategory, setActiveCategory] = useState('All');
   // State for search filter
   const [searchQuery, setSearchQuery] = useState('');
-  // State for Cart Modal visibility
+
+  // State for Modals
   const [showCartModal, setShowCartModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // State for Authenticated User
+  const [user, setUser] = useState(null);
+
   // State for Toast feedback
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
+
+  // 1. Fetch Products dynamically from Express / MongoDB API
+  useEffect(() => {
+    fetch('http://localhost:5000/api/products')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProductList(data);
+        }
+      })
+      .catch((err) => {
+        console.log('Using local fallback product data:', err.message);
+        setProductList(initialProducts);
+      });
+  }, []);
+
+  // 2. Load stored user from localStorage
+  useEffect(() => {
+    const savedUser = localStorage.getItem('swiftcart_user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
 
   // Add product to cart handler
   const handleAddToCart = (product) => {
@@ -61,19 +100,31 @@ function App() {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
 
-  // Clear cart after checkout
-  const handleClearCart = () => {
+  // User Logout
+  const handleLogout = () => {
+    localStorage.removeItem('swiftcart_user');
+    setUser(null);
+    setToastMessage('Logged out successfully');
+    setShowToast(true);
+  };
+
+  // Payment Completed Handler
+  const handlePaymentComplete = () => {
     setCart([]);
+    setShowCartModal(false);
+    setToastMessage('🎉 Payment successful! Order saved in MongoDB.');
+    setShowToast(true);
   };
 
   // Calculate total items count in cart
   const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
 
   // Filter products based on search query and active category
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = productList.filter((p) => {
     const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -90,6 +141,9 @@ function App() {
         onSearchChange={setSearchQuery}
         cartCount={cartCount}
         onOpenCart={() => setShowCartModal(true)}
+        user={user}
+        onOpenAuth={() => setShowAuthModal(true)}
+        onLogout={handleLogout}
       />
 
       {/* 2. Trending Slideshow (Shown on Home / "All" view when not searching) */}
@@ -123,28 +177,28 @@ function App() {
         ) : activeCategory === 'All' ? (
           /* "All" / Home View with Category Blocks */
           <>
-            <ElectronicSection products={products} onAddToCart={handleAddToCart} />
-            <FashionSection products={products} onAddToCart={handleAddToCart} />
-            <GrocerySection products={products} onAddToCart={handleAddToCart} />
-            <EducationSection products={products} onAddToCart={handleAddToCart} />
+            <ElectronicSection products={productList} onAddToCart={handleAddToCart} />
+            <FashionSection products={productList} onAddToCart={handleAddToCart} />
+            <GrocerySection products={productList} onAddToCart={handleAddToCart} />
+            <EducationSection products={productList} onAddToCart={handleAddToCart} />
           </>
         ) : activeCategory === 'Electronics' ? (
-          <ElectronicSection products={products} onAddToCart={handleAddToCart} />
+          <ElectronicSection products={productList} onAddToCart={handleAddToCart} />
         ) : activeCategory === 'Fashion' ? (
-          <FashionSection products={products} onAddToCart={handleAddToCart} />
+          <FashionSection products={productList} onAddToCart={handleAddToCart} />
         ) : activeCategory === 'Grocery' ? (
-          <GrocerySection products={products} onAddToCart={handleAddToCart} />
+          <GrocerySection products={productList} onAddToCart={handleAddToCart} />
         ) : activeCategory === 'Education' ? (
-          <EducationSection products={products} onAddToCart={handleAddToCart} />
+          <EducationSection products={productList} onAddToCart={handleAddToCart} />
         ) : null}
       </main>
 
-      {/* 4. Notification Toast when adding items */}
-      <ToastContainer position="bottom-end" className="p-3 style-toast">
+      {/* 4. Notification Toast when adding items or completing actions */}
+      <ToastContainer position="bottom-end" className="p-3 style-toast" style={{ zIndex: 9999 }}>
         <Toast
           onClose={() => setShowToast(false)}
           show={showToast}
-          delay={2500}
+          delay={3000}
           autohide
           bg="success"
         >
@@ -156,14 +210,38 @@ function App() {
         </Toast>
       </ToastContainer>
 
-      {/* 5. Cart Drawer Modal */}
+      {/* 5. Modals */}
+      {/* Cart Drawer Modal */}
       <CartModal
         show={showCartModal}
         onHide={() => setShowCartModal(false)}
         cart={cart}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
-        onClearCart={handleClearCart}
+        onProceedToPayment={() => {
+          setShowCartModal(false);
+          setShowPaymentModal(true);
+        }}
+      />
+
+      {/* User Auth Modal */}
+      <AuthModal
+        show={showAuthModal}
+        onHide={() => setShowAuthModal(false)}
+        onLoginSuccess={(loggedInUser) => {
+          setUser(loggedInUser);
+          setToastMessage(`Welcome back, ${loggedInUser.name}!`);
+          setShowToast(true);
+        }}
+      />
+
+      {/* Mock Payment Gateway Modal */}
+      <PaymentModal
+        show={showPaymentModal}
+        onHide={() => setShowPaymentModal(false)}
+        cart={cart}
+        user={user}
+        onPaymentComplete={handlePaymentComplete}
       />
 
       {/* 6. Footer */}

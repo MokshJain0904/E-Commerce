@@ -1,24 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import ListGroup from 'react-bootstrap/ListGroup';
-import Alert from 'react-bootstrap/Alert';
 
-function CartModal({ show, onHide, cart, onUpdateQuantity, onRemoveItem, onClearCart }) {
-  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
-
+function CartModal({ show, onHide, cart, onUpdateQuantity, onRemoveItem, onProceedToPayment }) {
   // Calculate total cart price in Rupees
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  const handleCheckout = () => {
-    if (cart.length === 0) return;
-    setCheckoutSuccess(true);
-    setTimeout(() => {
-      onClearCart();
-      setCheckoutSuccess(false);
-      onHide();
-    }, 2500);
-  };
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
@@ -27,12 +14,6 @@ function CartModal({ show, onHide, cart, onUpdateQuantity, onRemoveItem, onClear
       </Modal.Header>
 
       <Modal.Body>
-        {checkoutSuccess && (
-          <Alert variant="success" className="text-center fw-bold">
-            🎉 Order Placed Successfully! Thank you for shopping with SwiftCart.
-          </Alert>
-        )}
-
         {cart.length === 0 ? (
           <div className="text-center py-4 text-muted">
             <h5>Your cart is empty!</h5>
@@ -108,8 +89,8 @@ function CartModal({ show, onHide, cart, onUpdateQuantity, onRemoveItem, onClear
             <Button variant="outline-secondary" className="me-2" onClick={onHide}>
               Continue Shopping
             </Button>
-            <Button variant="success" onClick={handleCheckout} disabled={checkoutSuccess}>
-              {checkoutSuccess ? 'Processing...' : 'Proceed to Checkout'}
+            <Button variant="success" className="fw-bold" onClick={onProceedToPayment}>
+              Proceed to Payment 💳
             </Button>
           </div>
         </Modal.Footer>

@@ -5,6 +5,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Badge from 'react-bootstrap/Badge';
+import Dropdown from 'react-bootstrap/Dropdown';
 import logo from '../assets/main_logo.png';
 
 function ColorSchemesExample({
@@ -13,7 +14,10 @@ function ColorSchemesExample({
   searchQuery,
   onSearchChange,
   cartCount,
-  onOpenCart
+  onOpenCart,
+  user,
+  onOpenAuth,
+  onLogout
 }) {
   const categories = [
     { key: 'All', label: 'For You' },
@@ -58,22 +62,48 @@ function ColorSchemesExample({
             ))}
           </Nav>
 
-          {/* Search Input & Cart Button */}
-          <div className="d-flex align-items-center gap-3">
+          {/* Search Input, Auth & Cart Button */}
+          <div className="d-flex align-items-center gap-2">
             <Form className="d-flex" onSubmit={(e) => e.preventDefault()}>
               <Form.Control
                 type="search"
                 placeholder="Search products..."
-                className="me-2 rounded-pill bg-light"
+                className="rounded-pill bg-light"
                 value={searchQuery}
                 aria-label="Search"
                 onChange={(e) => onSearchChange(e.target.value)}
               />
             </Form>
 
+            {/* Auth Button / User Dropdown */}
+            {user ? (
+              <Dropdown align="end">
+                <Dropdown.Toggle variant="outline-light" id="dropdown-user" className="rounded-pill fw-semibold border-0 bg-secondary bg-opacity-25">
+                  👤 {user.name.split(' ')[0]}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item header className="text-muted small">
+                    Signed in as <strong>{user.email}</strong>
+                  </Dropdown.Item>
+                  <Dropdown.Divider />
+                  <Dropdown.Item onClick={onLogout} className="text-danger">
+                    🚪 Logout
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            ) : (
+              <Button
+                variant="outline-light"
+                className="rounded-pill px-3 fw-semibold"
+                onClick={onOpenAuth}
+              >
+                👤 Login
+              </Button>
+            )}
+
             <Button
               variant="warning"
-              className="d-flex align-items-center gap-2 rounded-pill fw-bold"
+              className="d-flex align-items-center gap-2 rounded-pill fw-bold ms-1"
               onClick={onOpenCart}
             >
               <span>🛒 Cart</span>
