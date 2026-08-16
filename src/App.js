@@ -10,6 +10,7 @@ import ProductCard from './components/ProductCard';
 import CartModal from './components/CartModal';
 import AuthModal from './components/AuthModal';
 import PaymentModal from './components/PaymentModal';
+import OrdersModal from './components/OrdersModal';
 import Footer from './components/Footer';
 import { products as initialProducts } from './data/productData';
 import Container from 'react-bootstrap/Container';
@@ -33,6 +34,7 @@ function App() {
   const [showCartModal, setShowCartModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showOrdersModal, setShowOrdersModal] = useState(false);
 
   // State for Authenticated User
   const [user, setUser] = useState(null);
@@ -144,6 +146,7 @@ function App() {
         user={user}
         onOpenAuth={() => setShowAuthModal(true)}
         onLogout={handleLogout}
+        onOpenOrders={() => setShowOrdersModal(true)}
       />
 
       {/* 2. Trending Slideshow (Shown on Home / "All" view when not searching) */}
@@ -242,6 +245,13 @@ function App() {
         cart={cart}
         user={user}
         onPaymentComplete={handlePaymentComplete}
+      />
+
+      {/* My Orders History Modal */}
+      <OrdersModal
+        show={showOrdersModal}
+        onHide={() => setShowOrdersModal(false)}
+        user={user}
       />
 
       {/* 6. Footer */}

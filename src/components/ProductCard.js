@@ -5,6 +5,8 @@ import Badge from 'react-bootstrap/Badge';
 
 // Reusable Product Card Component with Rupee ₹ Pricing & Additional Fields
 function ProductCard({ product, onAddToCart }) {
+  const fallbackImg = "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=500&q=80";
+
   return (
     <Card className="h-100 product-card shadow-sm border-0">
       {/* Product Image Container */}
@@ -24,6 +26,10 @@ function ProductCard({ product, onAddToCart }) {
           src={product.image}
           alt={product.name}
           className="product-card-img"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = fallbackImg;
+          }}
         />
       </div>
 

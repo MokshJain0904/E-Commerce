@@ -17,7 +17,8 @@ function ColorSchemesExample({
   onOpenCart,
   user,
   onOpenAuth,
-  onLogout
+  onLogout,
+  onOpenOrders
 }) {
   const categories = [
     { key: 'All', label: 'For You' },
@@ -62,7 +63,7 @@ function ColorSchemesExample({
             ))}
           </Nav>
 
-          {/* Search Input, Auth & Cart Button */}
+          {/* Search Input, My Orders, Auth & Cart Button */}
           <div className="d-flex align-items-center gap-2">
             <Form className="d-flex" onSubmit={(e) => e.preventDefault()}>
               <Form.Control
@@ -75,6 +76,15 @@ function ColorSchemesExample({
               />
             </Form>
 
+            {/* My Orders Button */}
+            <Button
+              variant="outline-info"
+              className="rounded-pill px-3 fw-semibold text-white border-secondary"
+              onClick={onOpenOrders}
+            >
+              📦 My Orders
+            </Button>
+
             {/* Auth Button / User Dropdown */}
             {user ? (
               <Dropdown align="end">
@@ -84,6 +94,9 @@ function ColorSchemesExample({
                 <Dropdown.Menu>
                   <Dropdown.Item header className="text-muted small">
                     Signed in as <strong>{user.email}</strong>
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={onOpenOrders}>
+                    📦 My Orders & Status
                   </Dropdown.Item>
                   <Dropdown.Divider />
                   <Dropdown.Item onClick={onLogout} className="text-danger">

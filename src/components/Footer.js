@@ -18,30 +18,13 @@ function Footer() {
             <p className="text-secondary small pe-lg-3">
               SwiftCart is your trusted online marketplace offering top Electronics, Fashion wear, Organic Groceries, and Educational resources across India.
             </p>
-            <div className="d-flex gap-3 text-secondary fs-5 mt-2">
-              <span style={{ cursor: 'pointer' }}>🌐</span>
-              <span style={{ cursor: 'pointer' }}>📱</span>
-              <span style={{ cursor: 'pointer' }}>💬</span>
-              <span style={{ cursor: 'pointer' }}>📧</span>
-            </div>
-          </Col>
-
-          {/* Categories Link Column */}
-          <Col lg={2} md={6}>
-            <h6 className="fw-bold text-white mb-3 text-uppercase tracking-wider">Categories</h6>
-            <ul className="list-unstyled text-secondary small">
-              <li className="mb-2"><a href="#electronics" className="text-decoration-none text-secondary hover-white">⚡ Electronics</a></li>
-              <li className="mb-2"><a href="#fashion" className="text-decoration-none text-secondary hover-white">👗 Fashion</a></li>
-              <li className="mb-2"><a href="#grocery" className="text-decoration-none text-secondary hover-white">🛒 Fresh Grocery</a></li>
-              <li className="mb-2"><a href="#education" className="text-decoration-none text-secondary hover-white">📚 Books & Courses</a></li>
-            </ul>
           </Col>
 
           {/* Customer Support Column */}
-          <Col lg={3} md={6}>
+          <Col lg={4} md={6}>
             <h6 className="fw-bold text-white mb-3 text-uppercase tracking-wider">Customer Support</h6>
             <ul className="list-unstyled text-secondary small">
-              <li className="mb-2">📍 New Delhi, India</li>
+              <li className="mb-2">📍 Mumbai, India</li>
               <li className="mb-2">📞 +91 98765 43210</li>
               <li className="mb-2">✉️ support@swiftcart.in</li>
               <li className="mb-2">🚚 Track Your Order</li>
@@ -49,7 +32,7 @@ function Footer() {
           </Col>
 
           {/* Newsletter Column */}
-          <Col lg={3} md={6}>
+          <Col lg={4} md={6}>
             <h6 className="fw-bold text-white mb-3 text-uppercase tracking-wider">Newsletter</h6>
             <p className="text-secondary small mb-3">Subscribe to receive exclusive deals and discounts directly to your inbox!</p>
             <div className="input-group input-group-sm mb-2">
@@ -63,7 +46,7 @@ function Footer() {
         <hr className="border-secondary my-3" />
 
         <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center text-secondary small">
-          <div>© {new Date().getFullYear()} SwiftCart E-Commerce. All rights reserved.</div>
+          <div>&copy; {new Date().getFullYear()} SwiftCart E-Commerce. All rights reserved.</div>
           <div className="mt-2 mt-sm-0">
             <span className="me-3">Privacy Policy</span>
             <span className="me-3">Terms of Service</span>

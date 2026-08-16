@@ -63,16 +63,10 @@
   font-size: 0.95rem;
 }
 
-/* Product Card Styling */
+/* Product Card Styling (Hover pop animation disabled) */
 .product-card {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
   border-radius: 10px;
   overflow: hidden;
-}
-
-.product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12) !important;
 }
 
 .product-img-wrapper {
@@ -85,11 +79,6 @@
   height: 100%;
   width: 100%;
   object-fit: cover;
-  transition: transform 0.35s ease;
-}
-
-.product-card:hover .product-card-img {
-  transform: scale(1.06);
 }
 
 .line-clamp-2 {
@@ -106,5 +95,3 @@
 .style-toast {
   z-index: 1060;
 }
-
-

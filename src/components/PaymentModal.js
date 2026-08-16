@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -12,13 +12,22 @@ function PaymentModal({ show, onHide, cart, user, onPaymentComplete }) {
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv] = useState('');
+
   const [fullName, setFullName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [address, setAddress] = useState('123 MG Road, Sector 15');
   const [city, setCity] = useState('Bengaluru');
   const [postalCode, setPostalCode] = useState('560001');
 
   const [step, setStep] = useState('FORM'); // FORM, PROCESSING, SUCCESS
   const [transactionResult, setTransactionResult] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      if (user.name) setFullName(user.name);
+      if (user.email) setEmail(user.email);
+    }
+  }, [user]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryFee = subtotal > 1000 ? 0 : 99;
@@ -36,9 +45,11 @@ function PaymentModal({ show, onHide, cart, user, onPaymentComplete }) {
         paidAt: new Date().toISOString(),
       };
 
+      const finalEmail = email.trim() || user?.email || 'customer@swiftcart.com';
+
       const orderPayload = {
         user: user?._id || null,
-        guestEmail: user?.email || 'customer@swiftcart.com',
+        guestEmail: finalEmail,
         orderItems: cart,
         shippingAddress: { fullName, address, city, postalCode },
         paymentMethod,
@@ -61,6 +72,7 @@ function PaymentModal({ show, onHide, cart, user, onPaymentComplete }) {
           _id: `ORD_${Math.floor(100000 + Math.random() * 900000)}`,
           paymentResult: mockTxn,
           totalPrice: grandTotal,
+          guestEmail: finalEmail,
         });
       }
 
@@ -90,9 +102,10 @@ function PaymentModal({ show, onHide, cart, user, onPaymentComplete }) {
         {step === 'FORM' && (
           <Form onSubmit={handleProcessPayment}>
             <div className="row g-4">
-              {/* Left Column: Shipping Address */}
+              {/* Left Column: Shipping Address & Email */}
               <div className="col-md-6 border-end pe-md-4">
-                <h5 className="fw-bold mb-3 text-primary">📍 1. Delivery Details</h5>
+                <h5 className="fw-bold mb-3 text-primary">📍 1. Delivery & Contact Info</h5>
+
                 <Form.Group className="mb-2">
                   <Form.Label className="small fw-semibold mb-1">Full Name</Form.Label>
                   <Form.Control
@@ -101,6 +114,17 @@ function PaymentModal({ show, onHide, cart, user, onPaymentComplete }) {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Enter your name"
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-2">
+                  <Form.Label className="small fw-semibold mb-1">Email Address (for Receipt)</Form.Label>
+                  <Form.Control
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. user@example.com"
                   />
                 </Form.Group>
 
@@ -276,6 +300,12 @@ function PaymentModal({ show, onHide, cart, user, onPaymentComplete }) {
                 <span>Order ID:</span>
                 <span className="fw-bold font-monospace text-dark">
                   {transactionResult?._id || 'ORD_LOCAL_102'}
+                </span>
+              </div>
+              <div className="d-flex justify-content-between small text-muted mb-2">
+                <span>Customer Email:</span>
+                <span className="fw-bold text-dark">
+                  {transactionResult?.guestEmail || email}
                 </span>
               </div>
               <div className="d-flex justify-content-between small text-muted mb-2">

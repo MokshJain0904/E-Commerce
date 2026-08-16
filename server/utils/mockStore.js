@@ -250,7 +250,7 @@ const products = [
     reviews: 94,
     delivery: "Free Delivery",
     badge: "100% Pure",
-    image: "https://images.unsplash.com/photo-1587049352847-4a222e784d38?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&q=80",
     description: "Unfiltered, unpasteurized raw wildflower honey rich in natural enzymes."
   },
   {
@@ -263,7 +263,7 @@ const products = [
     reviews: 82,
     delivery: "Free Delivery",
     badge: "Healthy Snack",
-    image: "https://images.unsplash.com/photo-1536591375315-1b83681e526a?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=500&q=80",
     description: "A crunchy mix of almonds, cashews, walnuts, and pistachios lightly salted."
   },
   {
@@ -395,7 +395,7 @@ const products = [
     reviews: 110,
     delivery: "Free Delivery",
     badge: "Creative Tool",
-    image: "https://images.unsplash.com/photo-1561112079-2c3226d9c5d9?w=500&q=80",
+    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=500&q=80",
     description: "Ergonomic battery-free pen with 4096 pressure levels for digital art."
   },
   {
