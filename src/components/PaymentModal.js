@@ -5,6 +5,7 @@ import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Card from 'react-bootstrap/Card';
 import Badge from 'react-bootstrap/Badge';
+import API_BASE_URL from '../config/apiConfig';
 
 function PaymentModal({ show, onHide, cart, user, onPaymentComplete }) {
   const [paymentMethod, setPaymentMethod] = useState('UPI');
@@ -59,7 +60,7 @@ function PaymentModal({ show, onHide, cart, user, onPaymentComplete }) {
 
       try {
         // Post order to Node Express server / MongoDB
-        const res = await fetch('http://localhost:5000/api/orders', {
+        const res = await fetch(`${API_BASE_URL}/api/orders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(orderPayload),

@@ -5,6 +5,8 @@ import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import Nav from 'react-bootstrap/Nav';
 
+import API_BASE_URL from '../config/apiConfig';
+
 function AuthModal({ show, onHide, onLoginSuccess }) {
   const [activeTab, setActiveTab] = useState('login');
   const [name, setName] = useState('');
@@ -32,8 +34,8 @@ function AuthModal({ show, onHide, onLoginSuccess }) {
 
     const endpoint =
       activeTab === 'login'
-        ? 'http://localhost:5000/api/users/login'
-        : 'http://localhost:5000/api/users/register';
+        ? `${API_BASE_URL}/api/users/login`
+        : `${API_BASE_URL}/api/users/register`;
 
     const payload =
       activeTab === 'login'
@@ -58,7 +60,11 @@ function AuthModal({ show, onHide, onLoginSuccess }) {
       onLoginSuccess(data);
       handleClose();
     } catch (err) {
-      setError(err.message || 'Server connection issue. Try demo account (user@example.com / password123)');
+      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+        setError('Unable to connect to backend server. Please ensure the backend server is running.');
+      } else {
+        setError(err.message || 'Server connection issue. Try demo account (user@example.com / password123)');
+      }
     } finally {
       setLoading(false);
     }

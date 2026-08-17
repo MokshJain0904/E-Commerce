@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -7,18 +7,21 @@ import Card from 'react-bootstrap/Card';
 import Spinner from 'react-bootstrap/Spinner';
 import ListGroup from 'react-bootstrap/ListGroup';
 
+import API_BASE_URL from '../config/apiConfig';
+
 function OrdersModal({ show, onHide, user }) {
   const [emailInput, setEmailInput] = useState(user?.email || '');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [cancellingId, setCancellingId] = useState(null);
 
-  const fetchOrders = async (searchEmail) => {
+  const fetchOrders = useCallback(async (searchEmail) => {
     if (!searchEmail) return;
     setLoading(true);
     setSearched(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/orders?email=${encodeURIComponent(searchEmail)}`);
+      const res = await fetch(`${API_BASE_URL}/api/orders?email=${encodeURIComponent(searchEmail)}`);
       const data = await res.json();
       if (Array.isArray(data)) {
         setOrders(data);
@@ -31,7 +34,7 @@ function OrdersModal({ show, onHide, user }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (show) {
@@ -39,11 +42,40 @@ function OrdersModal({ show, onHide, user }) {
       if (user?.email) setEmailInput(user.email);
       fetchOrders(initialEmail);
     }
-  }, [show, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, user, fetchOrders]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchOrders(emailInput.trim());
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) {
+      return;
+    }
+
+    setCancellingId(orderId);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const updatedOrder = await res.json();
+
+      if (res.ok) {
+        setOrders((prevOrders) =>
+          prevOrders.map((o) => (o._id === orderId ? { ...o, isCancelled: true, cancelledAt: new Date() } : o))
+        );
+      } else {
+        alert(updatedOrder.message || 'Could not cancel order');
+      }
+    } catch (err) {
+      console.error('Error cancelling order:', err);
+      alert('Server connection error. Please try again.');
+    } finally {
+      setCancellingId(null);
+    }
   };
 
   return (
@@ -86,7 +118,7 @@ function OrdersModal({ show, onHide, user }) {
         ) : (
           <div className="d-flex flex-column gap-3" style={{ maxHeight: '460px', overflowY: 'auto' }}>
             {orders.map((order, idx) => (
-              <Card key={order._id || idx} className="shadow-sm border">
+              <Card key={order._id || idx} className={`shadow-sm border ${order.isCancelled ? 'border-danger bg-light bg-opacity-50' : ''}`}>
                 <Card.Header className="bg-white d-flex flex-wrap justify-content-between align-items-center py-2">
                   <div>
                     <span className="fw-bold me-2">Order ID:</span>
@@ -96,19 +128,25 @@ function OrdersModal({ show, onHide, user }) {
                     </div>
                   </div>
                   <div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-                    <Badge bg="success" className="px-2 py-1">
+                    <Badge bg={order.isCancelled ? 'secondary' : 'success'} className="px-2 py-1">
                       💳 Paid (₹{order.totalPrice?.toLocaleString('en-IN')})
                     </Badge>
-                    <Badge bg="info" text="dark" className="px-2 py-1">
-                      🚚 {order.isDelivered ? 'Delivered' : 'Processing / Dispatched'}
-                    </Badge>
+                    {order.isCancelled ? (
+                      <Badge bg="danger" className="px-2 py-1">
+                        🚫 Cancelled
+                      </Badge>
+                    ) : (
+                      <Badge bg="info" text="dark" className="px-2 py-1">
+                        🚚 Processing / Dispatched
+                      </Badge>
+                    )}
                   </div>
                 </Card.Header>
 
                 <Card.Body className="py-2">
                   <ListGroup variant="flush">
                     {order.orderItems?.map((item, itemIdx) => (
-                      <ListGroup.Item key={itemIdx} className="d-flex align-items-center justify-content-between px-0 py-2 border-0">
+                      <ListGroup.Item key={itemIdx} className="d-flex align-items-center justify-content-between px-0 py-2 border-0 bg-transparent">
                         <div className="d-flex align-items-center">
                           {item.image && (
                             <img
@@ -136,9 +174,30 @@ function OrdersModal({ show, onHide, user }) {
                     <span className="text-muted">Payment: </span>
                     <strong>{order.paymentMethod || 'UPI / Card'}</strong>
                   </div>
+
                   <div>
-                    <span className="text-muted">Txn ID: </span>
-                    <span className="font-monospace fw-semibold">{order.paymentResult?.transactionId || 'TXN_SWIFT'}</span>
+                    {order.isCancelled ? (
+                      <span className="text-danger fw-bold">
+                        🚫 Order Cancelled
+                      </span>
+                    ) : (
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        className="fw-bold rounded-pill px-3"
+                        disabled={cancellingId === order._id}
+                        onClick={() => handleCancelOrder(order._id)}
+                      >
+                        {cancellingId === order._id ? (
+                          <>
+                            <Spinner animation="border" size="sm" className="me-1" />
+                            Cancelling...
+                          </>
+                        ) : (
+                          '🚫 Cancel Order'
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </Card.Footer>
               </Card>

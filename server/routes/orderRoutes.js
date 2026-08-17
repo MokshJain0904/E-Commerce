@@ -75,6 +75,7 @@ router.post('/', async (req, res) => {
       paymentMethod: paymentMethod || 'Mock UPI / Card Gateway',
       totalPrice: Number(totalPrice),
       isPaid: true,
+      isCancelled: false,
       paymentResult: paymentResult || {
         transactionId: `TXN_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`,
         status: 'SUCCESS',
@@ -102,6 +103,48 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('❌ Error saving order to MongoDB:', error.message);
     res.status(500).json({ message: 'Server Error saving order', error: error.message });
+  }
+});
+
+// @desc    Cancel an order
+// @route   PUT /api/orders/:id/cancel
+// @access  Public
+router.put('/:id/cancel', async (req, res) => {
+  try {
+    const orderId = req.params.id;
+
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(orderId)) {
+      const order = await Order.findById(orderId);
+      if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+
+      if (order.isCancelled) {
+        return res.status(400).json({ message: 'Order is already cancelled' });
+      }
+
+      order.isCancelled = true;
+      order.cancelledAt = new Date();
+
+      const updatedOrder = await order.save();
+      console.log(`🚫 Order ${orderId} cancelled in MongoDB`);
+      return res.json(updatedOrder);
+    }
+
+    // Fallback in-memory store cancel
+    const mockOrder = mockOrders.find((o) => o._id === orderId);
+    if (!mockOrder) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    mockOrder.isCancelled = true;
+    mockOrder.cancelledAt = new Date();
+    console.log(`🚫 Order ${orderId} cancelled in fallback store`);
+
+    return res.json(mockOrder);
+  } catch (error) {
+    console.error('Error cancelling order:', error.message);
+    res.status(500).json({ message: 'Server Error cancelling order', error: error.message });
   }
 });
 

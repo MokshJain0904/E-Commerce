@@ -18,6 +18,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
+import API_BASE_URL from './config/apiConfig';
 
 function App() {
   // State for product list (initialized with all 32 products)
@@ -45,7 +46,7 @@ function App() {
 
   // 1. Fetch Products dynamically from Express / MongoDB API
   useEffect(() => {
-    fetch('http://localhost:5000/api/products')
+    fetch(`${API_BASE_URL}/api/products`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
